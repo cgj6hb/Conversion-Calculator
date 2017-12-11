@@ -12,6 +12,11 @@ class ConverterViewController: UIViewController {
     @IBOutlet weak var outputDisplay: UITextField!
     @IBOutlet weak var inputDisplay: UITextField!
     
+    var valueString = ""
+    var valueOutputString = ""
+    var value = 0.0
+    
+    var currentConverter: Converter?
     var converters = [Converter(label: "fahrenheit to celcius", inputUnit: "°F", outputUnit: "°C"),
                       Converter(label: "celcius to fahrenheit", inputUnit: "°C", outputUnit: "°F"),
                       Converter(label: "miles to kilometers", inputUnit: "mi", outputUnit: "km"),
@@ -23,6 +28,8 @@ class ConverterViewController: UIViewController {
         // Do any additional setup after loading the view.
         inputDisplay.text = "°F"
         outputDisplay.text = "°C"
+        
+        currentConverter = converters[0]
     }
     
     override func didReceiveMemoryWarning() {
@@ -35,22 +42,87 @@ class ConverterViewController: UIViewController {
         
         for converter in converters {
             actionSheet.addAction(UIAlertAction(title: converter.label, style: UIAlertActionStyle.default, handler: { (alertAction) in
-                self.inputDisplay.text = converter.inputUnit
-                self.outputDisplay.text = converter.outputUnit
+                self.currentConverter = converter
+                self.inputDisplay.text = self.valueString + converter.inputUnit
+                
+                if self.valueOutputString != "" {
+                    self.convert()
+                }
+                
+                self.outputDisplay.text = self.valueOutputString + converter.outputUnit
             }))
         }
         
          self.present(actionSheet, animated:true, completion: nil)
     }
     
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    @IBAction func handleButtonPressed(_ sender: UIButton) {
+        switch sender.tag {
+        // Numpad
+        case 0...9:
+            valueString += String(sender.tag)
+            inputDisplay.text = valueString + currentConverter!.inputUnit
+            convert()
+            
+        // Decimal point
+        case -1:
+            // If there's already a decimal point in the number, don't add another one
+            if valueString.characters.contains(".") {
+                break
+            } else {
+                valueString += String(".")
+                inputDisplay.text = valueString + currentConverter!.inputUnit
+            }
+            
+        // Clear button
+        case -2:
+            inputDisplay.text = currentConverter!.inputUnit
+            outputDisplay.text = currentConverter!.outputUnit
+            valueString = ""
+            valueOutputString = ""
+            
+        // Plus/minus sign
+        case -3:
+            // First, get the current value of the input
+            var value: Int? = Int(valueString)
+            
+            if value != nil  {
+                value = value! * -1
+                valueString = String(value!)
+            }
+            
+            inputDisplay.text = valueString + currentConverter!.inputUnit
+            convert()
+            
+        default:
+            print("Invalid input")
+        }
     }
-    */
-
+    
+    func convert() {
+        if valueString != "" {
+            value = Double(valueString)!
+            
+            switch currentConverter!.label {
+            case "fahrenheit to celcius":
+                value = (Double) (value - 32) / 1.8
+                
+            case "celcius to fahrenheit":
+                value = value * 1.8 + 32
+                
+            case "miles to kilometers":
+                value = value * 1.609344
+                
+            case "kilometers to miles":
+                value = value / 1.609344
+                
+            default:
+                print("Unable to convert value")
+            }
+            
+            //update outputDisplay
+            valueOutputString = String(format: "%.2f", value)
+            outputDisplay.text = valueOutputString + currentConverter!.outputUnit
+        }
+    }
 }
