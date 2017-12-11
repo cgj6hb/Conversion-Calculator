@@ -67,7 +67,7 @@ class ConverterViewController: UIViewController {
         // Decimal point
         case -1:
             // If there's already a decimal point in the number, don't add another one
-            if valueString.characters.contains(".") {
+            if valueString.range(of: ".") != nil {
                 break
             } else {
                 valueString += String(".")
@@ -84,7 +84,7 @@ class ConverterViewController: UIViewController {
         // Plus/minus sign
         case -3:
             // First, get the current value of the input
-            var value: Int? = Int(valueString)
+            var value: Double? = Double(valueString)
             
             if value != nil  {
                 value = value! * -1
